@@ -1,0 +1,83 @@
+{
+    "display": [[
+    ".display.draw\n",
+    "LDI r15 240\n",
+    "LDI r7 236\n",
+    "LOD r7 r1\n",
+    "STR r15 r1\n",
+    "LDI r15 241\n",
+    "LDI r7 237\n",
+    "LOD r7 r1\n",
+    "STR r15 r1\n",
+    "LDI r15 242\n",
+    "STR r15 r0\n",
+    "RET\n"
+],[
+    ".display.render\n",
+    "LDI r15 245\n",
+    "STR r15 r0\n",
+    "RET\n"
+], [
+    ".display.clear\n",
+    "LDI r15 246\n",
+    "STR r15 r0\n",
+    "RET\n"
+],[
+    ".display.clearpixel\n",
+    "LDI r15 240\n",
+    "LDI r7 236\n",
+    "LOD r7 r1\n",
+    "STR r15 r1\n",
+    "LDI r15 241\n",
+    "LDI r7 237\n",
+    "LOD r7 r1\n",
+    "STR r15 r1\n",
+    "LDI r15 243\n",
+    "STR r15 r0\n",
+    "RET\n"
+], [
+    ".display.get\n",
+    "LDI r15 236\n",
+    "LOD r15 r1\n",
+    "LDI r15 237\n",
+    "LOD r15 r2\n",
+    "LDI r15 240\n",
+    "STR r15 r1\n",
+    "LDI r15 241\n",
+    "STR r15 r2\n",
+    "LDI r15 244\n",
+    "LOD r15 r3\n",
+    "LDI r15 231\n",
+    "STR r15 r3\n",
+    "RET\n"
+]],
+    "numdisplay": [[
+        ".numdisplay.set\n",
+        "LDI r15 250\n",
+        "LDI r7 236\n",
+        "LOD r7 r4\n",
+        "STR r15 r4\n",
+        "RET\n"
+    ], [".numdisplay.clear\n", "LDI r15 251\n", "STR r15 r0\n", "RET\n"]], 
+        "txtdisplay": [[
+        ".txtdisplay.set\n",
+        "LDI r15 249\n",
+        "STR r15 r0\n",
+        "LDI r7 232\n",
+        "LOD r7 r1\n",
+        "LDI r8 233\n",
+        "LOD r8 r2\n",
+        ".loop_txtdisplayset\n",
+        "LOD r1 r3\n",
+        "CMP r1 r2\n",
+        "BRH EQ .skip_txtdisplayset\n",
+        "LDI r15 247\n",
+        "STR r15 r3\n",
+        "INC r1\n",
+        "JMP .loop_txtdisplayset\n",
+        ".skip_txtdisplayset\n",
+        "LDI r15 248\n",
+        "STR r15 r0\n",
+        "RET\n"
+    ]]
+}
