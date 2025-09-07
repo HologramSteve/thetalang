@@ -45,6 +45,9 @@ def isFunctionCall(value):
 class Parser:
     def __init__(self, data, forceMainFunction=True):
         self.forceMainFunction = forceMainFunction
+        data = data.replace("\n", "")
+        data = data.split(";")
+        data = [item.strip() for item in data]
         self.parseProgram(data)
 
     def parseProgram(self, data):
@@ -85,8 +88,8 @@ class Parser:
                         
                         with open(f"tl_modules/{lineList[1]}.tl", 'r') as mf:
                             mfdata = mf.read()
-                            mfdata = mfdata.split("\n")
-                            mfdata = [line.strip() for line in mfdata]
+                            # mfdata = mfdata.split("\n")
+                            # mfdata = [line.strip() for line in mfdata]
                         moduleParser = Parser(mfdata, False)
                         self.finalParsed = moduleParser.finalParsed | self.finalParsed
                     else:
@@ -176,7 +179,7 @@ class Parser:
             parsedLine['ta'] = lineList[0]
             parsedLine['ia'] = lineList[1]
             parsedLine['va'] = lineList[3]
-        if isAbrMatch(lineAbr, "ti"):
+        elif isAbrMatch(lineAbr, "ti"):
             expression = "VARDECL"
             parsedLine['ta'] = lineList[0]
             parsedLine['ia'] = lineList[1]
