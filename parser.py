@@ -176,6 +176,11 @@ class Parser:
             parsedLine['ta'] = lineList[0]
             parsedLine['ia'] = lineList[1]
             parsedLine['va'] = lineList[3]
+        if isAbrMatch(lineAbr, "ti"):
+            expression = "VARDECL"
+            parsedLine['ta'] = lineList[0]
+            parsedLine['ia'] = lineList[1]
+            parsedLine['va'] = 0
         elif isAbrMatch(lineAbr, "imv"):
             expression = "VARMUTATION"
             parsedLine['ia'] = lineList[0]
