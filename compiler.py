@@ -44,10 +44,43 @@ class Compiler:
         self.forevercounter = 0
         self.registers = [0] * 16
 
+        # Optimization: Collect used variables
+        self.used_vars = set()
+        self.collect_used_vars(data)
+
         self.compileProgram(data)
         print(self.identifiers)
 
         return None
+
+    def collect_used_vars(self, data):
+        """Collect variables that are used in the program."""
+        for funcname, lines in data.items():
+            for line in lines:
+                expr = line.get('expression')
+                if expr == "VARDECL":
+                    # va might be a variable
+                    if getType(line['va']) == "None" and not isFunctionCall(line['va']):
+                        self.used_vars.add(line['va'])
+                elif expr == "VARMUTATION":
+                    self.used_vars.add(line['ia'])
+                    if getType(line['va']) == "None" and not isFunctionCall(line['va']):
+                        self.used_vars.add(line['va'])
+                elif expr in ["IFSTATEMENT", "WHILELOOP"]:
+                    for key in ['va', 'vb']:
+                        if key in line and getType(line[key]) == "None" and not isFunctionCall(line[key]):
+                            self.used_vars.add(line[key])
+                elif expr == "WRITETO":
+                    for key in ['va', 'vb']:
+                        if key in line and getType(line[key]) == "None" and not isFunctionCall(line[key]):
+                            self.used_vars.add(line[key])
+                elif expr == "DATARETURN":
+                    if 'va' in line and getType(line['va']) == "None" and not isFunctionCall(line['va']):
+                        self.used_vars.add(line['va'])
+                elif expr == "FUNCCALL":
+                    for key in ['pa', 'pb', 'pc', 'pd']:
+                        if key in line and getType(line[key]) == "None" and not isFunctionCall(line[key]):
+                            self.used_vars.add(line[key])
 
     def compileProgram(self, data):
         self.nestedBrackets = []
@@ -73,6 +106,7 @@ class Compiler:
 
         if valtype == "None" and not isFunctionCall(value):
             # print(self.identifiers.keys())
+            self.used_vars.add(value)  # Mark as used
             if not value in self.identifiers.keys():
                 raise KeyError(f"Uknown identifier '{value}'")
             
@@ -95,6 +129,7 @@ class Compiler:
                 self.addCode(f"LOD r15 r{register}")
             elif valtype == "arrayitem":
                 identifier = value.split("[")[0]
+                self.used_vars.add(identifier)  # Mark as used
                 adr = self.identifiers[identifier]['adr']
                 itemIndex = value.split("[")[1][:-1]
                 self.addCode(f"LDI r15 {int(adr) + int(itemIndex)}")
@@ -140,9 +175,14 @@ class Compiler:
         if expression == "NULLRETURN":
             self.addCode("RET")
         elif expression == "VARDECL":
-            adr = self.freeram.pop(0)
             valtype = line['ta']
             if valtype in ["int", "char"]:
+                if line['ia'] not in self.used_vars:
+                    # Skip allocation for unused variables
+                    if self.addComments:
+                        self.addCode(f"; {line['raw']} - IGNORED: unused variable")
+                    return
+                adr = self.freeram.pop(0)
                 self.identifiers[line['ia']] = {'adr': adr, 'type': valtype}
                 self.getValue(line['va'], "1")
                 self.addCode(f"LDI r3 {adr}")
@@ -201,6 +241,7 @@ class Compiler:
                 raise SyntaxError("Type String not implemented yet.")
         elif expression == "VARMUTATION":
             identifier = line['ia']
+            self.used_vars.add(identifier)  # Ensure marked as used
             mutationtype = line['ma']
             mutationvalue = line['va']
             adr = self.identifiers[identifier]['adr']
