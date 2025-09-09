@@ -3,8 +3,16 @@ from compiler import Compiler
 
 with open("main.tl", 'r') as f:
     data = f.read()
-    # data = data.split("\n")
+    lines = data.split('\n')
+    processed_lines = []
+    for line in lines:
+        if line.strip():
+            processed_lines.append(line + ';')
+        else:
+            processed_lines.append(line)
+    data = '\n'.join(processed_lines)
     # data = [line.strip() for line in data]
+    # data = data.split("\n")
 
 p = Parser(data)
 print("Parsed program:")

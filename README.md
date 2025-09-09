@@ -4,7 +4,7 @@ Thetalang is a compiled programming language for the [BatPU-2](https://www.youtu
 > - [Virtual machine](https://github.com/AdoHTQ/Batpu2-VM)
 > - [Youtube video](https://www.youtube.com/watch?v=3gBZHXqnleU)
 > - [Discord server](https://discord.gg/V5KFaF63mV)
-> - [ISA](https://www.youtube.com/redirect?event=video_description&redir_token=QUFFLUhqblhPeWp5cklPREY5MTNiejNScTBSUExDMlc2Z3xBQ3Jtc0tsSUtzTGtLZUlVTFQxcjNyVWN3S2lrN0NoOGRrRkxsR1doY3hnSGRIbkVWUURiSjR2dVQ1U1RZVDdWOGVWcDRRS0VYVGU5YS1qeWJfSTNTdTVNYWw3cjVkVnFzM25vM3d6dTBObVlpVzRLZW1UdW9VZw&q=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1Bj3wHV-JifR2vP4HRYoCWrdXYp3sGMG0Q58Nm56W4aI&v=3gBZHXqnleU)
+> - [ISA](https://docs.google.com/spreadsheets/d/1Bj3wHV-JifR2vP4HRYoCWrdXYp3sGMG0Q58Nm56W4aI/edit?gid=0#gid=0)
 
 ## Table contents
 1. Basic information
@@ -14,6 +14,7 @@ Thetalang is a compiled programming language for the [BatPU-2](https://www.youtu
 5. I/O Operations
 6. Examples
 7. Compilation
+8. Modules
 
 ## Syntax
 Some important things to note:
@@ -50,6 +51,7 @@ That's it!
 - Array (list of either int or char). Example: `array list[3] = [1,2,3];`. 
 > With arrays, you must specify the length before (`varname[X]`)
 - String (list of chars). Example: `String word = "hello";`
+- enum (predefined constants). Available enums: W (8), A (1), S (2), D (4), T (64), Y (128), J (16), K (32). Used for input keys or flags.
 
 ### Functions
 Functions are defined using the `fn` keyword followed by the name and a block.
@@ -69,8 +71,7 @@ Include external modules with:
 ```
 include moduleName;
 ```
-> Modules are .tl files in the `tl_modules` folder.
-> NOTE: If you made a module and you want to add it, open a PR on the github!
+> See the Modules section for details.
 
 ### Control Structures
 - **If Statement**: `if condition { ... }`
@@ -105,8 +106,7 @@ fn Main {
         x += 1;
     };
     return;
-};
-```
+}
 
 ### Compilation
 To compile your .tl file:
@@ -116,3 +116,41 @@ To compile your .tl file:
 4. Load `main.as` into the BatPU-2 VM to run.
 
 > Make sure all dependencies (modules) are in `tl_modules`.
+
+## Modules
+Modules are reusable code files that extend ThetaLang's functionality. They contain functions you can include in your programs to avoid rewriting common code.
+
+### Including Modules
+To use a module, add this at the top of your file (outside functions):
+```
+include moduleName;
+```
+> Modules are stored as `.tl` files in the `tl_modules` folder. The compiler automatically loads them when included.
+
+### Creating Modules
+Create a `.tl` file in `tl_modules` with your functions. For example:
+```
+fn myModule.myFunction {
+    // your code
+};
+```
+> Share your modules by opening a PR on the GitHub repo!
+
+### Existing Modules
+Here are the built-in modules available:
+
+- **display.tl**: Graphics functions for the display.
+  - `display.clear()`: Clears the screen.
+  - `display.update()`: Updates the display.
+  - `display.set(x, y, color)`: Sets a pixel at (x, y) to color.
+  - `display.get(x, y)`: Returns the color at (x, y).
+
+- **numdisplay.tl**: Numeric display functions.
+  - `numdisplay.set(value)`: Displays a number.
+  - `numdisplay.clear()`: Clears the numeric display.
+
+- **random.tl**: Random number generation.
+  - `random.randint(max)`: Returns a random integer from 0 to max.
+
+- **input.tl**: Input handling.
+  - `input.get()`: Returns the current input value from #255.

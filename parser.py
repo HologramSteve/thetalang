@@ -58,7 +58,7 @@ class Parser:
         openBracketCount = 0
         readingFunc = False
         for line in data:
-            if line.strip() == "":
+            if line.strip() == "" or line.strip().startswith("//"):
                 continue
             lineList = line.split(" ")
             if lineList[0] == "fn" and len(lineList) == 3 and lineList[len(lineList)-1] == "{":
@@ -116,6 +116,8 @@ class Parser:
                 a = "t"
             elif item == "=":
                 a = "d"
+            elif "[" in list(item) and item.endswith("]") and "," not in list(item):
+                a = "l"
             elif getType(item) != "None":
                 a = "v"
             elif item == "+=" or item == "-=":
@@ -173,68 +175,81 @@ class Parser:
             lineParsed.append({"abr": parsedItem, "posVal": parsedItem == "v" or parsedItem == "i"})
             lineAbr = lineAbr + parsedItem
 
+        try:
+            if isAbrMatch(lineAbr, "tidv"):
+                expression = "VARDECL"
+                parsedLine['ta'] = lineList[0]
+                parsedLine['ia'] = lineList[1]
+                if len(lineList) == 2:
+                    parsedLine['va'] = 0
+                else:
+                    parsedLine['va'] = lineList[3]
+            elif isAbrMatch(lineAbr, "ti"):
+                expression = "VARDECL"
+                parsedLine['ta'] = lineList[0]
+                parsedLine['ia'] = lineList[1]
+                parsedLine['va'] = 0
+            elif isAbrMatch(lineAbr, "imv"):
+                expression = "VARMUTATION"
+                parsedLine['ia'] = lineList[0]
+                parsedLine['ma'] = lineList[1]
+                parsedLine['va'] = lineList[2]
+            elif isAbrMatch(lineAbr, "ldv"):
+                expression = "LISTMUTATION"
+                list_access = lineList[0]
+                list_name = list_access.split('[')[0]
+                index = list_access.split('[')[1].rstrip(']')
+                parsedLine['ia'] = list_name
+                parsedLine['idx'] = index
+                parsedLine['va'] = lineList[2]
+                print(parsedLine)
+            elif isAbrMatch(lineAbr, "r"):
+                expression = "NULLRETURN"
+            elif isAbrMatch(lineAbr, "rv"):
+                expression = "DATARETURN"
+                parsedLine['va'] = lineList[1]
+            elif isAbrMatch(lineAbr, "svcv{"):
+                expression = "IFSTATEMENT"
+                parsedLine['va'] = lineList[1]
+                parsedLine['ca'] = lineList[2]
+                parsedLine['vb'] = lineList[3]
+            elif lineAbr == "}":
+                expression = "CLOSINGBRACKET" 
+            elif isAbrMatch(lineAbr, "*v>v"):
+                expression = "WRITETO"
+                parsedLine['va'] = lineList[1]
+                parsedLine['vb'] = lineList[3]
+            elif isAbrMatch(lineAbr, "f{"):
+                expression = "FOREVERLOOP"
+            elif isAbrMatch(lineAbr, "wvcv{"):
+                expression = "WHILELOOP"
+                parsedLine['va'] = lineList[1]
+                parsedLine['ca'] = lineList[2]
+                parsedLine['vb'] = lineList[3]
+            elif isAbrMatch(lineAbr, "b"):
+                expression = "FUNCCALL"
+                parsedLine['ia'] = line.split("(")[0]
+                
+                parameters = extract_parameters(line)
+                
+                letterMap = ["a", "b", "c", "d"]
+                letterI = 0
+                
+                for parameter in parameters:
+                    parsedLine[f'p{letterMap[letterI]}'] = parameter
+                    letterI += 1
+                
+                
 
-        if isAbrMatch(lineAbr, "tidv"):
-            expression = "VARDECL"
-            parsedLine['ta'] = lineList[0]
-            parsedLine['ia'] = lineList[1]
-            parsedLine['va'] = lineList[3]
-        elif isAbrMatch(lineAbr, "ti"):
-            expression = "VARDECL"
-            parsedLine['ta'] = lineList[0]
-            parsedLine['ia'] = lineList[1]
-            parsedLine['va'] = 0
-        elif isAbrMatch(lineAbr, "imv"):
-            expression = "VARMUTATION"
-            parsedLine['ia'] = lineList[0]
-            parsedLine['ma'] = lineList[1]
-            parsedLine['va'] = lineList[2]
-        elif isAbrMatch(lineAbr, "r"):
-            expression = "NULLRETURN"
-        elif isAbrMatch(lineAbr, "rv"):
-            expression = "DATARETURN"
-            parsedLine['va'] = lineList[1]
-        elif isAbrMatch(lineAbr, "svcv{"):
-            expression = "IFSTATEMENT"
-            parsedLine['va'] = lineList[1]
-            parsedLine['ca'] = lineList[2]
-            parsedLine['vb'] = lineList[3]
-        elif lineAbr == "}":
-            expression = "CLOSINGBRACKET" 
-        elif isAbrMatch(lineAbr, "*v>v"):
-            expression = "WRITETO"
-            parsedLine['va'] = lineList[1]
-            parsedLine['vb'] = lineList[3]
-        elif isAbrMatch(lineAbr, "f{"):
-            expression = "FOREVERLOOP"
-        elif isAbrMatch(lineAbr, "wvcv{"):
-            expression = "WHILELOOP"
-            parsedLine['va'] = lineList[1]
-            parsedLine['ca'] = lineList[2]
-            parsedLine['vb'] = lineList[3]
-        elif isAbrMatch(lineAbr, "b"):
-            expression = "FUNCCALL"
-            parsedLine['ia'] = line.split("(")[0]
-            
-            parameters = extract_parameters(line)
-            
-            letterMap = ["a", "b", "c", "d"]
-            letterI = 0
-            
-            for parameter in parameters:
-                parsedLine[f'p{letterMap[letterI]}'] = parameter
-                letterI += 1
-            
-            
 
-
-        else:
-            print(lineAbr)
-            if not (len(lineList) == 2 and lineList[0] == "include"):
-                raise SyntaxError(f"Invalid syntax ->\n{line}")
             else:
-                expression = "INCLUDESTATEMENT"
-
+                print(lineAbr)
+                if not (len(lineList) == 2 and lineList[0] == "include"):
+                    raise SyntaxError(f"Invalid syntax ->\n{line}")
+                else:
+                    expression = "INCLUDESTATEMENT"
+        except Exception as e:
+            print(f"Error '{e}' on line {line}")
         parsedLine["expression"] = expression
         parsedLine['raw'] = line
         return parsedLine

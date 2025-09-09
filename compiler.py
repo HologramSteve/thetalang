@@ -12,7 +12,7 @@ def isFunctionCall(value):
 
     return False
 def getType(value):
-    itemArray = list(value)
+    itemArray = list(str(value))
 
     if isInt(value):
         return "int"
@@ -60,7 +60,7 @@ class Compiler:
                 expr = line.get('expression')
                 if expr == "VARDECL":
                     # va might be a variable
-                    if getType(line['va']) == "None" and not isFunctionCall(line['va']):
+                    if getType(str(line['va'])) == "None" and not isFunctionCall(line['va']):
                         self.used_vars.add(line['va'])
                 elif expr == "VARMUTATION":
                     self.used_vars.add(line['ia'])
@@ -194,7 +194,10 @@ class Compiler:
                 arrayHeap = line['ia'].split("[")[1][:-1]
 
                 arrayItems = line['va'][1:-1].split(",")
-                adrPointer = adr
+                try:
+                    adrPointer = adr
+                except Exception as e:
+                    print(f"Error: {e} on line {line}")
                 
                 for p in range(adr, adr + len(arrayItems) + 1):
                     self.freeram.pop(0)
